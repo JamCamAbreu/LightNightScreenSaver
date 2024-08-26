@@ -1,0 +1,37 @@
+name: Publish Screensaver
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["master"]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest # For Linux, use ubuntu-latest
+    environment: dev
+    steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: 'Restore .NET Packages'
+      shell: pwsh # For Linux, use bash
+      run: dotnet publish -c Release -o '${{ runner.temp }}/publish'
+      
+    - name: 'Zip Files'
+      shell: pwsh # For Linux, use bash
+      run: Compress-Archive -Path ${{ runner.temp }}/publish/* -DestinationPath ${{ runner.temp }}\package.zip
+
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v4
+      with:
+       name: package
+       path: ${{ runner.temp }}\package.zip
+      
