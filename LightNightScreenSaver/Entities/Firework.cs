@@ -13,11 +13,14 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using HPScreen.Admin;
+using static LightNightScreenSaver.Entities.CannonSuite;
 
 namespace LightNightScreenSaver.Entities
 {
     public class Firework : GravityObject
     {
+        public SuiteLayer Layer { get; set; }
+        public float LayerScale { get; set; }
         public bool IsDead
         {
             get
@@ -26,8 +29,9 @@ namespace LightNightScreenSaver.Entities
             }
         }
         public int Fuse { get; set; }
-        public Firework()
+        public Firework(SuiteLayer layer, float launchpower)
         {
+            Layer = layer;
             Mass = 4f;
             Gravity = 0.35f;
             AirResistance = 0.9f;
@@ -35,7 +39,16 @@ namespace LightNightScreenSaver.Entities
             YVelocity = 0;
             XAcceleration = 0;
             YAcceleration = 0;
-            Fuse = 100;
+            Fuse = (int)launchpower;
+
+            if (layer == SuiteLayer.Foreground)
+            {
+                LayerScale = 1.25f;
+            }
+            else
+            {
+                LayerScale = 0.75f;
+            }
         }
         public override void Update()
         {
@@ -44,7 +57,14 @@ namespace LightNightScreenSaver.Entities
         }
         public void Explode()
         {
-            ParticleEmitters.Current.AddNewEffect(GenerateEffect(180));
+            if (Layer == SuiteLayer.Background)
+            {
+                ParticleLayers.Current.AddBackgroundEffect(GenerateEffect(180));
+            }
+            else if (Layer == SuiteLayer.Foreground)
+            {
+                ParticleLayers.Current.AddForegroundEffect(GenerateEffect(180));
+            }
         }
 
         public LifeParticleEffect GenerateEffect(int duration)
@@ -54,9 +74,11 @@ namespace LightNightScreenSaver.Entities
             particleTexture.SetData(new[] { Color.White });
             var textureRegion = new Texture2DRegion(particleTexture);
 
-            float radius = Ran.Current.Next(50, 200);
-            float speedmin = Ran.Current.Next(40, 120);
-            float speedmax = Ran.Current.Next(220, 420);
+            float radius = Ran.Current.Next(50, 200) * Scale * LayerScale;
+            float speedmin = Ran.Current.Next(80, 240) * Scale * LayerScale;
+            float speedmax = Ran.Current.Next(440, 840) * Scale * LayerScale;
+            float minScale = Ran.Current.Next(1, 4) * Scale * LayerScale;
+            float maxScale = Ran.Current.Next(4, 8) * Scale * LayerScale;
 
             // Create the particle effect
             var particleEffect = new ParticleEffect()
@@ -70,7 +92,7 @@ namespace LightNightScreenSaver.Entities
                         {
                             Speed = new Range<float>(speedmin, speedmax), // Speed range for particles
                             Quantity = Ran.Current.Next(80, 200), // Number of particles emitted
-                            Scale = new Range<float>(1f, 4f), // Scale of particles
+                            Scale = new Range<float>(minScale, maxScale), // Scale of particles
                             Rotation = new Range<float>(-MathHelper.Pi, MathHelper.Pi)
                         },
                         Modifiers =

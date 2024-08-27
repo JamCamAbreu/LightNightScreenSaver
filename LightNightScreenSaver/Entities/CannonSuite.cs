@@ -7,22 +7,27 @@ using System.Threading.Tasks;
 
 namespace LightNightScreenSaver.Entities
 {
-    public class GameScreen
+    public class CannonSuite
     {
         public List<Cannon> Cannons { get; set; }
-        public GameScreen()
+        public enum SuiteLayer
         {
+            Background,
+            Foreground
+        }
+        public SuiteLayer Layer { get; set; }
+        public CannonSuite(SuiteLayer layer)
+        {
+            Layer = layer;
             Cannons = new List<Cannon>();
 
-            int numcannons = Ran.Current.Next(14, 22);
+            int numcannons = Ran.Current.Next(3, 7);
+            int pad = 100;
+            int space = (Graphics.Current.ScreenWidth - pad * 2) / numcannons;
             for (int i = 0; i < numcannons; i++)
             {
-                Cannon can = new Cannon();
-                int minX = 100;
-                int maxX = Graphics.Current.ScreenWidth - (int)can.SpriteWidth - 100;
-                int minY = Graphics.Current.ScreenHeight - (int)can.SpriteHeight;
-                int maxY = Graphics.Current.ScreenHeight - (int)can.SpriteHeight;
-                can.SetAbsolutePosition(Ran.Current.Next(minX, maxX), Ran.Current.Next(minY, maxY));
+                Cannon can = new Cannon(layer);
+                can.SetAbsolutePosition(pad + i * space, Graphics.Current.ScreenHeight - (int)can.SpriteHeight);
                 Cannons.Add(can);
             }
         }

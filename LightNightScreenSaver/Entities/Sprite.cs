@@ -38,7 +38,6 @@ namespace HPScreen.Entities
         public float Scale { get; set; }
         public float TargetScale { get; set; }
         public bool Flipped { get; set; }
-
         public float Xpos { get; protected set; }
         public float centerx
         {
@@ -55,6 +54,7 @@ namespace HPScreen.Entities
             }
         }
         public float Ypos { get; protected set; }
+        public Color? Highlight { get; set; }
         public Sprite()
         {
             string defaultsprite = "ball";
@@ -84,7 +84,7 @@ namespace HPScreen.Entities
 
             Rectangle destinationrect = new Rectangle((int)Xpos, (int)Ypos, (int)(Texture.Width * Scale), (int)(Texture.Height * Scale));
             Rectangle? sourcerect = null;
-            Color color = Color.White;
+            Color color = Highlight == null ? Color.White : (Color)Highlight;
             SpriteEffects seffects = Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
             float rotation = 0;
             Vector2 origin = new Vector2(Texture.Width/2, Texture.Height/2);

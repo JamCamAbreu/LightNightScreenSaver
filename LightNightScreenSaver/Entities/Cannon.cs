@@ -5,17 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 using HPScreen.Admin;
 using HPScreen.Entities;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using static LightNightScreenSaver.Entities.CannonSuite;
 
 namespace LightNightScreenSaver.Entities
 {
     public class Cannon : Sprite
     {
+        public SuiteLayer Layer { get; set; }
         public float Angle { get; set; }
         public float Power { get; set; }
         public int LoadTimer { get; set; }
-        public int LoadTimerMin { get; set; } = 45;
-        public int LoadTimerMax { get; set; } = 160;
+        public int LoadTimerStartValue { get; set; }
+        public int LoadTimerMin { get; set; } = 200;
+        public int LoadTimerMax { get; set; } = 550;
         public float FirePosX
         {
             get
@@ -31,8 +35,9 @@ namespace LightNightScreenSaver.Entities
             }
         }
         protected List<Firework> Shots { get; set; }
-        public Cannon()
+        public Cannon(SuiteLayer layer)
         {
+            Layer = layer;
             SetSprite("cannon");
             Shots = new List<Firework>();
             Xpos = 0;
@@ -65,6 +70,9 @@ namespace LightNightScreenSaver.Entities
                 go.Explode();
                 Shots.Remove(go);
             }
+
+            float colorfactor = 1f - (float)LoadTimer / LoadTimerStartValue;
+            Highlight = Color.Lerp(new Color(20, 20, 20), Color.Red, colorfactor);
         }
         public override void Draw()
         {
@@ -76,10 +84,14 @@ namespace LightNightScreenSaver.Entities
         }
         public void Fire()
         {
-            Firework shot = new Firework();
+            Firework shot = new Firework(Layer, Power);
             shot.SetSprite("ball");
             shot.SetAbsolutePosition(FirePosX, FirePosY);
-            shot.Scale = 0.5f;
+            if (Layer == SuiteLayer.Background)
+            {
+                shot.Highlight = Color.DarkBlue;
+            }
+            shot.Scale = 0.5f * shot.LayerScale;
             float xveloc = (float)Math.Cos(Angle) * Power;
             float yveloc = (float)Math.Sin(Angle) * Power;
             shot.ApplyForce(xveloc, yveloc);
@@ -91,15 +103,16 @@ namespace LightNightScreenSaver.Entities
         {
             int totalframes = Ran.Current.Next(LoadTimerMin, LoadTimerMax);
             LoadTimer = totalframes;
+            LoadTimerStartValue = totalframes;
 
             RandomizeShot();
         }
 
         public void RandomizeShot()
         {
-            float angleVarience = (float)Math.PI / 4;
+            float angleVarience = (float)Math.PI / 8;
             Angle = (float)-Math.PI / 2 + Ran.Current.Next(-angleVarience, angleVarience);
-            Power = Ran.Current.Next(60, 160);
+            Power = Ran.Current.Next(100, 200);
         }
     }
 }

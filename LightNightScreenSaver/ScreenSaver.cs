@@ -22,7 +22,8 @@ namespace HPScreen
         private MouseState _previousMouseState;
         private int loadFrames = 0;
         private const int LOAD_FRAMES_THRESH = 10;
-        private GameScreen gameScreen;
+        private CannonSuite backgroundCannons;
+        private CannonSuite foregroundCannons;
 
         protected bool RunSetup { get; set; }
         public ScreenSaver()
@@ -50,6 +51,8 @@ namespace HPScreen
             // Add your Sprites here like the following:
             Graphics.Current.SpritesByName.Add("ball", Content.Load<Texture2D>("Sprites/Ball"));
             Graphics.Current.SpritesByName.Add("cannon", Content.Load<Texture2D>("Sprites/Cannon"));
+            Graphics.Current.SpritesByName.Add("bg", Content.Load<Texture2D>("Sprites/CityBackground"));
+            Graphics.Current.SpritesByName.Add("buildings", Content.Load<Texture2D>("Sprites/CityBuildings"));
 
             Graphics.Current.Fonts = new Dictionary<string, SpriteFont>();
             Graphics.Current.Fonts.Add("arial-48", Content.Load<SpriteFont>($"Fonts/arial_48"));
@@ -62,8 +65,9 @@ namespace HPScreen
             CheckInput(); // Used to exit game when input detected (aka screensaver logic)
             if (RunSetup) { Setup(); }
 
-            gameScreen.Update();
-            ParticleEmitters.Current.Update(gameTime);
+            backgroundCannons.Update();
+            foregroundCannons.Update();
+            ParticleLayers.Current.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -73,8 +77,12 @@ namespace HPScreen
             GraphicsDevice.Clear(Color.Black);
 
             DrawBackground();
-            gameScreen.Draw();
-            ParticleEmitters.Current.Draw(gameTime);
+            backgroundCannons.Draw();
+            ParticleLayers.Current.DrawBackgroundEffects(gameTime);
+
+            DrawForeground();
+            foregroundCannons.Draw();
+            ParticleLayers.Current.DrawForegroundEffects(gameTime);
 
             base.Draw(gameTime);
         }
@@ -82,8 +90,8 @@ namespace HPScreen
         protected void Setup()
         {
             // Any logic that needs to run at the beginning of the game only:
-            gameScreen = new GameScreen();
-
+            backgroundCannons = new CannonSuite(CannonSuite.SuiteLayer.Background);
+            foregroundCannons = new CannonSuite(CannonSuite.SuiteLayer.Foreground);
             RunSetup = false;
         }
 
@@ -91,14 +99,25 @@ namespace HPScreen
         {
             // Draw your background image here if you want one:
 
-            //Rectangle destinationRectangle = new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight);
-            //Graphics.Current.SpriteB.Begin();
-            //Graphics.Current.SpriteB.Draw(
-            //    Graphics.Current.SpritesByName["sprite_name"],  // Sprite: (texture2d)
-            //    destinationRectangle,
-            //    Color.White
-            //);
-            //Graphics.Current.SpriteB.End();
+            Rectangle destinationRectangle = new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight);
+            Graphics.Current.SpriteB.Begin();
+            Graphics.Current.SpriteB.Draw(
+                Graphics.Current.SpritesByName["bg"],
+                destinationRectangle,
+                Color.White
+            );
+            Graphics.Current.SpriteB.End();
+        }
+        protected void DrawForeground()
+        {
+            Rectangle destinationRectangle = new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight);
+            Graphics.Current.SpriteB.Begin();
+            Graphics.Current.SpriteB.Draw(
+                Graphics.Current.SpritesByName["buildings"],
+                destinationRectangle,
+                Color.White
+            );
+            Graphics.Current.SpriteB.End();
         }
         protected void CheckInput()
         {
