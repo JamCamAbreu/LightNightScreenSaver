@@ -29,4 +29,9 @@
     <Message Text="Restoring dotnet tools" Importance="High" />
     <Exec Command="dotnet tool restore" />
   </Target>
+  <Target Name="CustomAfterPublish" AfterTargets="Publish">
+	<Message Text="Generating .scr file" Importance="High" />
+	<Move SourceFiles="$(PublishDir)$(TargetName).exe" DestinationFiles="$(PublishDir)$(TargetName).scr" />
+	<Message Text="  Created $(PublishDir)\$(TargetName).scr" Importance="High" />
+  </Target>
 </Project>
