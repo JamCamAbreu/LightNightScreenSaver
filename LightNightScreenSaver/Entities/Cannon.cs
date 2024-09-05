@@ -110,8 +110,16 @@ namespace LightNightScreenSaver.Entities
 
         public void RandomizeShot()
         {
-            float angleVarience = (float)Math.PI / 8;
-            Angle = (float)-Math.PI / 2 + Ran.Current.Next(-angleVarience, angleVarience);
+            float angleVarience = (float)Math.PI / 16;
+            float baseAngle = (float)-Math.PI / 2 + Ran.Current.Next(-angleVarience, angleVarience);
+
+            // -0.5 to 0.0    left side needs to shoot more clockwise
+            //  0.0 to 0.5  right side needs to shoot more counter-clockwise
+            float pos = Xpos / Graphics.Current.ScreenWidth - 0.5f;
+            float positionAdjustedAngle = baseAngle + (float)((Math.PI/4) * pos);
+            
+            //float adjustedForScreen = 
+            Angle = positionAdjustedAngle;
             Power = Ran.Current.Next(100, 200);
         }
     }
