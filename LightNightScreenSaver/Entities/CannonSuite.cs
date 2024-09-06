@@ -21,10 +21,11 @@ namespace LightNightScreenSaver.Entities
             Layer = layer;
             Cannons = new List<Cannon>();
 
-            int numcannons = Ran.Current.Next(3, 5);
-            if (layer == SuiteLayer.Background) { numcannons += Ran.Current.Next(4, 8); }
+            int numcannons = Ran.Current.Next(2, 4);
+            if (layer == SuiteLayer.Background) { numcannons += Ran.Current.Next(6, 10); }
             int pad = 100;
             int space = (Graphics.Current.ScreenWidth - pad * 2) / numcannons;
+            pad += space / 2;
             for (int i = 0; i < numcannons; i++)
             {
                 Cannon can = new Cannon(layer);
