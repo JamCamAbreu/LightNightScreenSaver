@@ -1,6 +1,7 @@
 ﻿using LightNightScreenSaver.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SharpDX.Direct3D9;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace HPScreen.Admin
         #region Singleton Implementation
         private static Graphics instance;
         private static object _lock = new object();
+        public const float DARKNESS_RATE = 0.0004f;
         private Graphics()
         {
             DebugFont = new Font(Color.White, Font.Type.arial, Font.Size.SIZE_M, true);
@@ -47,6 +49,19 @@ namespace HPScreen.Admin
             this.GraphicsDM.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             this.GraphicsDM.IsFullScreen = true;
             this.GraphicsDM.ApplyChanges();
+
+            this.GameWorldTarget = new RenderTarget2D(Device, ScreenWidth, ScreenHeight);
+            this.LightTarget = new RenderTarget2D(Device, ScreenWidth, ScreenHeight);
+
+            // Set up Darkness Texture:
+            this.DarknessTexture = new Texture2D(Device, ScreenWidth, ScreenHeight);
+            Color[] data;
+            data = new Color[ScreenWidth * ScreenHeight];
+            for (int i = 0; i < data.Length; ++i) data[i] = (Color.Black);
+            this.DarknessTexture.SetData(data);
+
+            this.Darkness = 0.65f;
+            this.DarknessRate = -DARKNESS_RATE;
         }
         public Dictionary<string, Texture2D> SpritesByName { get; set; }
         public Dictionary<string, SpriteFont> Fonts { get; set; }
@@ -54,10 +69,37 @@ namespace HPScreen.Admin
         public SpriteBatch SpriteB { get; set; }
         public GraphicsDevice Device { get; set; }
         public GameWindow Window { get; set; }
+        public RenderTarget2D GameWorldTarget { get; set; }
+        public RenderTarget2D LightTarget { get; set; }
+        public Texture2D DarknessTexture { get; set; }
+        public float Darkness { get; set; }
+        public float DarknessRate { get; set; }
         public int ScreenMidX { get { return Graphics.Current.Device.Viewport.Width / 2; } }
         public int ScreenMidY { get { return Graphics.Current.Device.Viewport.Height / 2; } }
         public int ScreenWidth { get { return Graphics.Current.Device.Viewport.Width; } }
         public int ScreenHeight { get { return Graphics.Current.Device.Viewport.Height; } }
+        private BlendState _blendStateSubtract { get; set; }
+        public BlendState BlendStateSubtract
+        {
+            get
+            {
+                if (_blendStateSubtract == null)
+                {
+                    _blendStateSubtract = new BlendState
+                    {
+                        ColorSourceBlend = Microsoft.Xna.Framework.Graphics.Blend.One,
+                        AlphaSourceBlend = Microsoft.Xna.Framework.Graphics.Blend.One,
+
+                        ColorDestinationBlend = Microsoft.Xna.Framework.Graphics.Blend.One,
+                        AlphaDestinationBlend = Microsoft.Xna.Framework.Graphics.Blend.One,
+
+                        ColorBlendFunction = BlendFunction.ReverseSubtract,
+                        AlphaBlendFunction = BlendFunction.ReverseSubtract
+                    };
+                }
+                return _blendStateSubtract;
+            }
+        }
         public int CenterStringX(int originX, string message, Font font)
         {
             if (string.IsNullOrEmpty(message)) { return originX; }

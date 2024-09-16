@@ -53,6 +53,7 @@ namespace HPScreen
             Graphics.Current.SpritesByName.Add("cannon", Content.Load<Texture2D>("Sprites/Cannon"));
             Graphics.Current.SpritesByName.Add("bg", Content.Load<Texture2D>("Sprites/CityBackground"));
             Graphics.Current.SpritesByName.Add("buildings", Content.Load<Texture2D>("Sprites/CityBuildings"));
+            Graphics.Current.SpritesByName.Add("light", Content.Load<Texture2D>("Sprites/light"));
 
             Graphics.Current.Fonts = new Dictionary<string, SpriteFont>();
             Graphics.Current.Fonts.Add("arial-48", Content.Load<SpriteFont>($"Fonts/arial_48"));
@@ -69,22 +70,74 @@ namespace HPScreen
             foregroundCannons.Update();
             ParticleLayers.Current.Update(gameTime);
 
+            UpdateDarkness();
+
             base.Update(gameTime);
         }
         protected override void Draw(GameTime gameTime)
         {
-            // Color that the screen is wiped with each frame before drawing anything else:
-            GraphicsDevice.Clear(Color.Black);
+            Graphics.Current.Device.SetRenderTarget(Graphics.Current.GameWorldTarget);
+            Graphics.Current.GraphicsDM.GraphicsDevice.Clear(Color.Transparent);
 
             DrawBackground();
             backgroundCannons.Draw();
             ParticleLayers.Current.DrawBackgroundEffects(gameTime);
+
+            Graphics.Current.Device.SetRenderTarget(Graphics.Current.LightTarget);
+            Graphics.Current.GraphicsDM.GraphicsDevice.Clear(Color.Transparent);
+            DrawLightSources();
+
+            Graphics.Current.Device.SetRenderTarget(null);
+            Graphics.Current.GraphicsDM.GraphicsDevice.Clear(Color.Black);
+
+            // Draw World
+            Graphics.Current.SpriteB.Begin();
+            Graphics.Current.SpriteB.Draw(Graphics.Current.GameWorldTarget, new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight), Color.White);
+            Graphics.Current.SpriteB.End();
+
+            // Draw Light Sources
+            Graphics.Current.SpriteB.Begin();
+            Graphics.Current.SpriteB.Draw(Graphics.Current.LightTarget, new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight), Color.White);
+            Graphics.Current.SpriteB.End();
 
             DrawForeground();
             foregroundCannons.Draw();
             ParticleLayers.Current.DrawForegroundEffects(gameTime);
 
             base.Draw(gameTime);
+        }
+
+        protected void DrawLightSources()
+        {
+            // Draw Black Rectangle:
+            float MaxDarkness = 0.6f;
+            Graphics.Current.SpriteB.Begin();
+            Graphics.Current.SpriteB.Draw(
+                Graphics.Current.DarknessTexture,
+                new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight),
+                Color.Black * Math.Min(Graphics.Current.Darkness, MaxDarkness));
+            Graphics.Current.SpriteB.End();
+
+            // Subtract from the Black Rectangle:
+            foreach (var effect in ParticleLayers.Current.BackgroundEffects)
+            {
+                Graphics.Current.SpriteB.Begin(SpriteSortMode.Deferred, Graphics.Current.BlendStateSubtract);
+                Vector2 pos = effect.ParticleEffect.Position;
+                int dim = (int)(effect.Radius * 65 * (1 - effect.PercentLifeLeft));
+                int drawx = (int)(pos.X - dim / 2);
+                int drawy = (int)(pos.Y - dim / 2);
+                float sizetocolorfactor = 1.25f - (Firework.MAX_RADIUS - effect.Radius) / Firework.MAX_RADIUS;
+                Color color = 1.4f * sizetocolorfactor * (Color.Black * (effect.PercentLifeLeft));
+                Graphics.Current.SpriteB.Draw(Graphics.Current.SpritesByName["light"], new Rectangle(drawx, drawy, dim, dim), color);
+                Graphics.Current.SpriteB.End();
+            }
+        }
+        protected void UpdateDarkness()
+        {
+            Graphics.Current.Darkness += Graphics.Current.DarknessRate;
+
+            if (Graphics.Current.Darkness <= 0.15f) { Graphics.Current.DarknessRate = Graphics.DARKNESS_RATE; }
+            else if (Graphics.Current.Darkness > 1.5f) { Graphics.Current.DarknessRate = -Graphics.DARKNESS_RATE; }
         }
 
         protected void Setup()

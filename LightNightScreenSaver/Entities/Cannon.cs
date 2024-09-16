@@ -18,8 +18,8 @@ namespace LightNightScreenSaver.Entities
         public float Power { get; set; }
         public int LoadTimer { get; set; }
         public int LoadTimerStartValue { get; set; }
-        public int LoadTimerMin { get; set; } = 200;
-        public int LoadTimerMax { get; set; } = 550;
+        public int LoadTimerMin { get; set; } = 300;
+        public int LoadTimerMax { get; set; } = 1000;
         public float FirePosX
         {
             get
@@ -110,17 +110,16 @@ namespace LightNightScreenSaver.Entities
 
         public void RandomizeShot()
         {
-            float angleVarience = (float)Math.PI / 16;
+            float angleVarience = (float)Math.PI / 64;
             float baseAngle = (float)-Math.PI / 2 + Ran.Current.Next(-angleVarience, angleVarience);
 
             // -0.5 to 0.0    left side needs to shoot more clockwise
             //  0.0 to 0.5  right side needs to shoot more counter-clockwise
-            float pos = Xpos / Graphics.Current.ScreenWidth - 0.5f;
-            float positionAdjustedAngle = baseAngle + (float)((Math.PI/4) * pos);
-            
-            //float adjustedForScreen = 
+            float pos = (Xpos / Graphics.Current.ScreenWidth) - 0.5f;
+            float positionAdjustedAngle = baseAngle + ((float)-Math.PI / 8 * pos);
+
             Angle = positionAdjustedAngle;
-            Power = Ran.Current.Next(100, 200);
+            Power = Ran.Current.Next(100, 140);
         }
     }
 }

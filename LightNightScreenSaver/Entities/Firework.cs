@@ -19,6 +19,8 @@ namespace LightNightScreenSaver.Entities
 {
     public class Firework : GravityObject
     {
+        public const int MIN_RADIUS = 40;
+        public const int MAX_RADIUS = 90;
         public SuiteLayer Layer { get; set; }
         public float LayerScale { get; set; }
         public bool IsDead
@@ -43,11 +45,11 @@ namespace LightNightScreenSaver.Entities
 
             if (layer == SuiteLayer.Foreground)
             {
-                LayerScale = 1.25f;
+                LayerScale = 1.15f;
             }
             else
             {
-                LayerScale = 0.75f;
+                LayerScale = 0.7f;
             }
         }
         public override void Update()
@@ -74,11 +76,11 @@ namespace LightNightScreenSaver.Entities
             particleTexture.SetData(new[] { Color.White });
             var textureRegion = new Texture2DRegion(particleTexture);
 
-            float radius = Ran.Current.Next(50, 200) * Scale * LayerScale;
+            float radius = Ran.Current.Next(MIN_RADIUS, MAX_RADIUS) * Scale * LayerScale;
             float speedmin = Ran.Current.Next(80, 240) * Scale * LayerScale;
             float speedmax = Ran.Current.Next(440, 840) * Scale * LayerScale;
-            float minScale = Ran.Current.Next(1, 4) * Scale * LayerScale;
-            float maxScale = Ran.Current.Next(4, 8) * Scale * LayerScale;
+            float minScale = Ran.Current.Next(1.0f, 4.0f) * Scale * (LayerScale*LayerScale);
+            float maxScale = Ran.Current.Next(4, 8) * Scale * (LayerScale * LayerScale);
 
             // Create the particle effect
             var particleEffect = new ParticleEffect()
@@ -103,8 +105,8 @@ namespace LightNightScreenSaver.Entities
                                 {
                                     new ColorInterpolator
                                     {
-                                        StartValue = new HslColor(Ran.Current.Next(0f, 1f), Ran.Current.Next(0f, 1f), Ran.Current.Next(0f, 1f)), // Starting color
-                                        EndValue = new HslColor(Ran.Current.Next(0f, 1f), Ran.Current.Next(0f, 1f), Ran.Current.Next(0f, 1f)), // Starting color
+                                        StartValue = new HslColor(Ran.Current.Next(0.4f, 1f), Ran.Current.Next(0.4f, 1f), Ran.Current.Next(0.4f, 1f)), // Starting color
+                                        EndValue = new HslColor(Ran.Current.Next(0.6f, 1f), Ran.Current.Next(0.6f, 1f), Ran.Current.Next(0.6f, 1f)), // Ending color
                                     },
                                     new OpacityInterpolator
                                     {
@@ -126,7 +128,7 @@ namespace LightNightScreenSaver.Entities
             // Set the initial position of the firework effect
             particleEffect.Position = new Vector2(Xpos, Ypos);
 
-            return new LifeParticleEffect(particleEffect, duration);
+            return new LifeParticleEffect(particleEffect, duration, radius);
         }
     }
 }

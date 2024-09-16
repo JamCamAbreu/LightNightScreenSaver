@@ -38,6 +38,7 @@ namespace LightNightScreenSaver.Entities
 
         public List<LifeParticleEffect> BackgroundEffects { get; set; } = new List<LifeParticleEffect>();
         public List<LifeParticleEffect> ForegroundEffects { get; set; } = new List<LifeParticleEffect>();
+        public IEnumerable<LifeParticleEffect> AllEffects { get { return BackgroundEffects.Concat(ForegroundEffects); } }
         public void AddBackgroundEffect(LifeParticleEffect effect)
         {
             BackgroundEffects.Add(effect);
