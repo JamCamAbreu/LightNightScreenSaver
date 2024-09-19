@@ -29,7 +29,7 @@ namespace LightNightScreenSaver.Entities
             for (int i = 0; i < numcannons; i++)
             {
                 Cannon can = new Cannon(layer);
-                can.SetAbsolutePosition(pad + i * space, Graphics.Current.ScreenHeight - (int)can.SpriteHeight);
+                can.SetAbsolutePosition(pad + i * space, Graphics.Current.ScreenHeight - (int)can.SpriteHeight/2);
                 Cannons.Add(can);
             }
         }

@@ -72,7 +72,7 @@ namespace LightNightScreenSaver.Entities
             }
 
             float colorfactor = 1f - (float)LoadTimer / LoadTimerStartValue;
-            Highlight = Color.Lerp(new Color(20, 20, 20), Color.Red, colorfactor);
+            Highlight = Color.Lerp(new Color(20, 20, 20), Color.DarkRed, colorfactor);
         }
         public override void Draw()
         {

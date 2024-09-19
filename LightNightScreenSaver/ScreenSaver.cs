@@ -5,8 +5,10 @@ using Microsoft.VisualBasic.ApplicationServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended;
 using SharpDX.Direct2D1;
 using SharpDX.Direct3D9;
+using SharpDX.Mathematics.Interop;
 using System;
 using System.Collections.Generic;
 
@@ -24,6 +26,7 @@ namespace HPScreen
         private const int LOAD_FRAMES_THRESH = 10;
         private CannonSuite backgroundCannons;
         private CannonSuite foregroundCannons;
+        private WindowManager Windows { get; set; }
 
         protected bool RunSetup { get; set; }
         public ScreenSaver()
@@ -72,6 +75,8 @@ namespace HPScreen
 
             UpdateDarkness();
 
+            Windows.Update();
+
             base.Update(gameTime);
         }
         protected override void Draw(GameTime gameTime)
@@ -82,6 +87,8 @@ namespace HPScreen
             DrawBackground();
             backgroundCannons.Draw();
             ParticleLayers.Current.DrawBackgroundEffects(gameTime);
+
+            DrawForeground();
 
             Graphics.Current.Device.SetRenderTarget(Graphics.Current.LightTarget);
             Graphics.Current.GraphicsDM.GraphicsDevice.Clear(Color.Transparent);
@@ -100,9 +107,11 @@ namespace HPScreen
             Graphics.Current.SpriteB.Draw(Graphics.Current.LightTarget, new Rectangle(0, 0, Graphics.Current.ScreenWidth, Graphics.Current.ScreenHeight), Color.White);
             Graphics.Current.SpriteB.End();
 
-            DrawForeground();
+            
+
             foregroundCannons.Draw();
             ParticleLayers.Current.DrawForegroundEffects(gameTime);
+            Windows.Draw();
 
             base.Draw(gameTime);
         }
@@ -110,7 +119,7 @@ namespace HPScreen
         protected void DrawLightSources()
         {
             // Draw Black Rectangle:
-            float MaxDarkness = 0.6f;
+            float MaxDarkness = 0.8f;
             Graphics.Current.SpriteB.Begin();
             Graphics.Current.SpriteB.Draw(
                 Graphics.Current.DarknessTexture,
@@ -119,9 +128,9 @@ namespace HPScreen
             Graphics.Current.SpriteB.End();
 
             // Subtract from the Black Rectangle:
+            Graphics.Current.SpriteB.Begin(SpriteSortMode.Deferred, Graphics.Current.BlendStateSubtract);
             foreach (var effect in ParticleLayers.Current.BackgroundEffects)
             {
-                Graphics.Current.SpriteB.Begin(SpriteSortMode.Deferred, Graphics.Current.BlendStateSubtract);
                 Vector2 pos = effect.ParticleEffect.Position;
                 int dim = (int)(effect.Radius * 65 * (1 - effect.PercentLifeLeft));
                 int drawx = (int)(pos.X - dim / 2);
@@ -129,15 +138,21 @@ namespace HPScreen
                 float sizetocolorfactor = 1.25f - (Firework.MAX_RADIUS - effect.Radius) / Firework.MAX_RADIUS;
                 Color color = 1.4f * sizetocolorfactor * (Color.Black * (effect.PercentLifeLeft));
                 Graphics.Current.SpriteB.Draw(Graphics.Current.SpritesByName["light"], new Rectangle(drawx, drawy, dim, dim), color);
-                Graphics.Current.SpriteB.End();
+                
             }
+
+            foreach (Window window in Windows.AllWindows)
+            {
+                Graphics.Current.SpriteB.Draw(Graphics.Current.SpritesByName["light"], window.LightRectangle, Color.Black * window.Transparency);
+            }
+            Graphics.Current.SpriteB.End();
         }
         protected void UpdateDarkness()
         {
             Graphics.Current.Darkness += Graphics.Current.DarknessRate;
 
-            if (Graphics.Current.Darkness <= 0.15f) { Graphics.Current.DarknessRate = Graphics.DARKNESS_RATE; }
-            else if (Graphics.Current.Darkness > 1.5f) { Graphics.Current.DarknessRate = -Graphics.DARKNESS_RATE; }
+            if (Graphics.Current.Darkness <= Graphics.MIN_DARKNESS) { Graphics.Current.DarknessRate = Graphics.DARKNESS_RATE; }
+            else if (Graphics.Current.Darkness > Graphics.MAX_DARKNESS) { Graphics.Current.DarknessRate = -Graphics.DARKNESS_RATE; }
         }
 
         protected void Setup()
@@ -145,6 +160,7 @@ namespace HPScreen
             // Any logic that needs to run at the beginning of the game only:
             backgroundCannons = new CannonSuite(CannonSuite.SuiteLayer.Background);
             foregroundCannons = new CannonSuite(CannonSuite.SuiteLayer.Foreground);
+            Windows = new WindowManager();
             RunSetup = false;
         }
 

@@ -18,6 +18,11 @@ namespace HPScreen.Admin
         private static Graphics instance;
         private static object _lock = new object();
         public const float DARKNESS_RATE = 0.0004f;
+        public const float MAX_DARKNESS = 1.5f; // dark
+        public const float MIN_DARKNESS = -0.15f; // light
+        public const float DARKNESS_LIGHT_MIN = 0.25f;
+        public static float BACKGROUND_WIDTH = 3840.0f;
+        public static float BACKGROUND_HEIGHT = 2160.0f;
         private Graphics()
         {
             DebugFont = new Font(Color.White, Font.Type.arial, Font.Size.SIZE_M, true);
@@ -60,7 +65,7 @@ namespace HPScreen.Admin
             for (int i = 0; i < data.Length; ++i) data[i] = (Color.Black);
             this.DarknessTexture.SetData(data);
 
-            this.Darkness = 0.65f;
+            this.Darkness = 0.6f;
             this.DarknessRate = -DARKNESS_RATE;
         }
         public Dictionary<string, Texture2D> SpritesByName { get; set; }
@@ -189,6 +194,29 @@ namespace HPScreen.Admin
 
                 this.DrawString(message, pos, DebugFont, true, false, false, null);
             }
+        }
+        public static Vector2 GetStretchedPosition(Vector2 position)
+        {
+            return new Vector2(GetStretchedPositionX(position.X), GetStretchedPositionY(position.Y));
+        }
+        public static float GetStretchedPositionX(float position)
+        {
+            float scaleX = (float)Graphics.Current.ScreenWidth / BACKGROUND_WIDTH;
+            return position * scaleX;
+        }
+        public static float GetStretchedPositionY(float position)
+        {
+            float scaleY = (float)Graphics.Current.ScreenHeight / BACKGROUND_HEIGHT;
+            return position * scaleY;
+        }
+        public static Vector2 GetOriginalPositionFromStretched(Vector2 stretchedPosition)
+        {
+            // Calculate inverse scale factors
+            float inverseScaleX = (float)BACKGROUND_WIDTH / Graphics.Current.ScreenWidth;
+            float inverseScaleY = (float)BACKGROUND_HEIGHT / Graphics.Current.ScreenHeight;
+
+            // Scale the input position back to original coordinates
+            return new Vector2(stretchedPosition.X * inverseScaleX, stretchedPosition.Y * inverseScaleY);
         }
         #endregion
     }
